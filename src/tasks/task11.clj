@@ -1,8 +1,6 @@
-(ns tasks.task11)
+(ns tasks.task11
+    (:use tasks.utils))
 
-
-(defn first-char [string]
-    (.substring string 0 1))
 
 (defn add-char-to-string-list [s chars]
     (cond
