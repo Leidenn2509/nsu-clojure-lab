@@ -3,11 +3,11 @@
 
 (defn add-char-to-string-list-recur
     ([s strings] (add-char-to-string-list-recur s strings (list)))
-    ([s strings res] (if
-                         (= (count strings) 0) res
-                                               (if (= s (first-char (first strings)))
-                                                   (recur s (rest strings) res)
-                                                   (recur s (rest strings) (concat res (list (str s (first strings)))))))))
+    ([s strings res] (if (= (count strings) 0)
+                         res
+                         (if (= s (first-char (first strings)))
+                             (recur s (rest strings) res)
+                             (recur s (rest strings) (cons (.concat s (first strings)) res))))))
 
 
 (defn concat-stringlist-to-stringlist-recur
