@@ -1,4 +1,4 @@
-(ns tasks.task12
+(ns tasks.task1.task12
     (:use tasks.utils))
 
 (defn add-char-to-string-list-recur

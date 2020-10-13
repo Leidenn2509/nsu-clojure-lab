@@ -1,4 +1,4 @@
-(ns tasks.task14
+(ns tasks.task1.task14
     (:use tasks.utils))
 
 (defn filter-start-not-with [char string-coll]
