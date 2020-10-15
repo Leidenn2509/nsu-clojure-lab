@@ -11,14 +11,14 @@
 ;(def dx 0.001953125)
 ;(def dx 0.0009765625)
 
-(defn s [a b h]
+(defn area [a b h]
     (/ (* (+ a b) h) 2.0))
 
-(defn st [f x dx] (s (f x) (f (- x dx)) dx))
+(defn farea [f x dx] (area (f x) (f (- x dx)) dx))
 
 (def di (memoize (fn [f x]
                      (if (> x 0)
-                         (+ (di f (- x dx)) (st f x dx))
+                         (+ (di f (- x dx)) (farea f x dx))
                          0))))
 
 (defn integr [f] (memoize (fn [x] (di f x))))
