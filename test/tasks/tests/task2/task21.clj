@@ -12,12 +12,12 @@
         (let [f (integr (fn [_] 2))]
             (is (= (f 1) 2.0))
             (is (= (f 2) 4.0))
-            (is (= (f 10) 20.0)))
+            (is (= (f 5) 10.0)))
         (let [f (integr (fn [x] x))]
             (is (= (f 1) 0.5))
             (is (= (f 2) 2.0))
-            (is (= (f 10) 50.0)))
+            (is (= (f 5) 12.5)))
         (let [f (integr (fn [x] (* x x))) epsilon 0.001]
             (is (almost-equal (f 1) (xxs 1) epsilon))
             (is (almost-equal (f 2) (xxs 2) epsilon))
-            (is (almost-equal (f 10) (xxs 10) epsilon)))))
+            (is (almost-equal (f 5) (xxs 5) epsilon)))))
