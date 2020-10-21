@@ -10,8 +10,12 @@
                        [(+ sum (farea-n f (inc step) dxx)) (inc step)])
                    [0 0])))
 
-(def memoize-iterate-integr (memoize (fn [f] (iterate-integr f))))
+(defn remember-seq [f, seq] (fn [x] (let [n (nearest-n x dxx)]
+                                        (+
+                                            (nth seq n)
+                                            (if (= (rem x dxx) 0.0)
+                                                0.0
+                                                (farea-ab f (* dxx n) x))))))
 
 (defn integr2 [f]
-    (fn [x] (let [n (nearest-n x dxx)]
-                (+ (nth (memoize-iterate-integr f) n) (farea-ab f (* dxx n) x)))))
+    (remember-seq f (iterate-integr f)))
