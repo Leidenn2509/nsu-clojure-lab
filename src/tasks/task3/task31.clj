@@ -15,7 +15,10 @@
 (defn parallel-filter [pred n coll]
     (->> coll
          (break-coll n)
-         (map #(future (filter pred %)))
+         (map #(future (doall (filter pred %))))
          (doall)
          (map deref)
          (apply concat)))
+
+(defn parallel-filter-by-threads [pred n coll]
+    (parallel-filter pred (/ (count coll) n) coll))

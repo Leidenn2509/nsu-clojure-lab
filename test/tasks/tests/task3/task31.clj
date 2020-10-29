@@ -2,12 +2,12 @@
     (:require [clojure.test :refer :all])
     (:use tasks.task3.task31))
 
-;(deftest filter-test
-;    (testing "Test parallel-filter output"
-;        (let [coll (take 20 (iterate inc -10))]
-;            (is (= (parallel-filter even? 3 coll) (filter even? coll)))
-;            (is (= (parallel-filter neg? 3 coll) (filter neg? coll)))
-;            (is (= (parallel-filter #(= % 0) 5 coll) (filter #(= % 0) coll))))))
+(deftest filter-test
+    (testing "Test parallel-filter output"
+        (let [coll (take 20 (iterate inc -10))]
+            (is (= (parallel-filter even? 3 coll) (filter even? coll)))
+            (is (= (parallel-filter neg? 3 coll) (filter neg? coll)))
+            (is (= (parallel-filter #(= % 0) 5 coll) (filter #(= % 0) coll))))))
 
 
 (deftest filter-time
