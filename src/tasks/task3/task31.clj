@@ -11,7 +11,6 @@
                         (take n coll)
                         (break-coll n (drop n coll))))))
 
-
 (defn parallel-filter [pred n coll]
     (->> coll
          (break-coll n)
