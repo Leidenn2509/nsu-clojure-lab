@@ -16,7 +16,15 @@
             (println "(filter heavy-even? (take 20 (iterate inc -5)))")
             (time (doall (filter heavy-even? (take 20 (iterate inc -5)))))
             (println "(parallel-filter heavy-even? 2 (take 20 (iterate inc -5)))")
-            (time (doall (lazy-parallel-filter heavy-even? 2 6 (take 20 (iterate inc -5))))))))
+            (time (doall (lazy-parallel-filter heavy-even? 2 6 (take 20 (iterate inc -5)))))
+            (let [lazy-filter (lazy-parallel-filter heavy-even? 5 6 (iterate inc 0))
+                  def-filter (filter heavy-even? (iterate inc 0))
+                  n 200]
+                (println (str "(nth def-filter" n ")"))
+                (time  (nth def-filter n))
+                (println "(nth lazy-filter" n ")")
+                (time (nth lazy-filter n))
+            ))))
 
 (deftest lazy-filter-infinite
     (testing "Test lazy-parallel-filter with infinity seq"
