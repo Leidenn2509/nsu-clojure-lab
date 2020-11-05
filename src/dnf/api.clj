@@ -37,7 +37,6 @@
         (= (variable-name v1)
            (variable-name v2))))
 
-
 ;; And, Or, Not, Impl
 
 (defn args
@@ -96,3 +95,20 @@
     [impl]
     {:pre (dnf-impl? impl)}
     (last (rest impl)))
+
+;; Utils
+
+(defn same-type?
+    "Check that expr1 and expr2 have same type"
+    [expr1 expr2] (= (first expr1) (first expr2)))
+
+(defn same-expr?
+    "Check if two expressions is same"
+    [expr1 expr2]
+    (if (not (same-type? expr1 expr2))
+        false
+        (cond
+            (variable? expr1) (same-variables? expr1 expr2)
+            (constant? expr1) (= (constant-value expr1) (constant-value expr2))
+            :else (->> (map #(same-expr? %1 %2) (args expr1) (args expr2))
+                 (every? true?)))))

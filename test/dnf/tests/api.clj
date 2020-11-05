@@ -3,7 +3,7 @@
     (:use dnf.api))
 
 
-(deftest api
+(deftest api-test
     (testing "Test variable api"
         (is (variable? (variable :x)))
         (is (= :x (variable-name (variable :x))))
@@ -47,4 +47,14 @@
         (is (let [impl (dnf-impl (variable :x) (variable :y))]
                 (and
                     (same-variables? (impl-first-arg impl) (variable :x))
-                    (same-variables? (impl-second-arg impl) (variable :y)))))))
+                    (same-variables? (impl-second-arg impl) (variable :y))))))
+    (testing "Test utils functions"
+        (is (same-type? (variable :x) (variable :y)))
+        (is (not (same-type? (variable :x) (constant :y))))
+        (is (same-expr? (constant true) (constant true)))
+        (is (not (same-expr? (constant true) (constant false))))
+        (is (same-expr? (variable :x) (variable :x)))
+        (is (not (same-expr? (variable :x) (variable :y))))
+        (is (same-expr?
+                (dnf-or (variable :x) (constant true))
+                (dnf-or (variable :x) (constant true))))))
