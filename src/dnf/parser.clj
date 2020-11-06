@@ -56,13 +56,14 @@
 
 (defn parse
     ([string] (parse (rpn (lexer string) [] `()) `()))
-    ([rpn stack] (let [token (first rpn)]
+    ([rpn stack] (let [token (first rpn)
+                       r (rest rpn)]
                      (cond
-                         (= token ::true) (parse (rest rpn) (cons (constant true) stack))
-                         (= token ::false) (parse (rest rpn) (cons (constant false) stack))
-                         (= token ::not) (parse (rest rpn) (cons (dnf-not (first stack)) (rest stack)))
-                         (= token ::or) (parse (rest rpn) (cons (dnf-or (second stack) (first stack)) (drop 2 stack))) ;; apply?
-                         (= token ::and) (parse (rest rpn) (cons (dnf-and (second stack) (first stack)) (drop 2 stack)))
-                         (= token ::impl) (parse (rest rpn) (cons (dnf-impl (second stack) (first stack)) (drop 2 stack)))
-                         (= (first token) ::symbol) (parse (rest rpn) (cons (variable (second token)) stack))
+                         (= token ::true) (parse r (cons (constant true) stack))
+                         (= token ::false) (parse r (cons (constant false) stack))
+                         (= token ::not) (parse r (cons (dnf-not (first stack)) (rest stack)))
+                         (= token ::or) (parse r (cons (dnf-or (second stack) (first stack)) (drop 2 stack))) ;; apply?
+                         (= token ::and) (parse r (cons (dnf-and (second stack) (first stack)) (drop 2 stack)))
+                         (= token ::impl) (parse r (cons (dnf-impl (second stack) (first stack)) (drop 2 stack)))
+                         (= (first token) ::symbol) (parse r (cons (variable (second token)) stack))
                          :else (first stack)))))
