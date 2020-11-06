@@ -1,5 +1,6 @@
 (ns dnf.dnf
-    (:use dnf.api))
+    (:use dnf.api)
+    (:use dnf.parser))
 
 (defn remove-impl
     "Transform all implication in 'not A or B'"
@@ -11,5 +12,3 @@
         expr))
 
 (defn dnf [x] (dnf-and x))
-
-
