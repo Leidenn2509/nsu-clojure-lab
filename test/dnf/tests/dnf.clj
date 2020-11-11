@@ -34,6 +34,18 @@
         (is (compare-transform-expr-recur distributive-prop "a*(b+1)" "a*b+a*1"))
         (is (compare-transform-expr-recur distributive-prop "a*(b+(c+d))" "a*c+a*d+a*b"))))
 
+(deftest simplify-test
+    (testing "Test 'simplify'"
+        (is (compare-transform-expr-recur simplify "a" "a"))
+        (is (compare-transform-expr-recur simplify "a*b" "a*b"))
+        (is (compare-transform-expr-recur simplify "a+b" "a+b"))
+        (is (compare-transform-expr-recur simplify "a+1" ""))
+        (is (compare-transform-expr-recur simplify "0+b" "b"))
+        (is (compare-transform-expr-recur simplify "0+b+1" ""))
+        (is (compare-transform-expr-recur simplify "1*b" "b"))
+        (is (compare-transform-expr-recur simplify "a*0" ""))
+        (is (compare-transform-expr-recur simplify "a*0*1" ""))
+        ))
 
 (defn- substitute- [variables]
     (fn [expr] (substitute expr variables)))
@@ -45,3 +57,35 @@
         (is (compare-transform-expr (substitute- {:x true}) "1+x" "1+1"))
         (is (compare-transform-expr (substitute- {:x true}) "y>(1+x)" "y>(1+1)"))
         (is (compare-transform-expr (substitute- {:x true :y false}) "y>(1+x)" "0>(1+1)"))))
+
+(deftest dnf?-test
+    (testing "Test 'dnf?'"
+        (is (dnf? (parse "")))
+        (is (dnf? (parse "a")))
+        (is (dnf? (parse "a+b")))
+        (is (dnf? (parse "a+-b")))
+        (is (dnf? (parse "-a")))
+        (is (dnf? (parse "a+(b*c)")))
+        (is (dnf? (parse "(b*c)+a")))
+        (is (dnf? (parse "a+(b*-c)")))
+        (is (not (dnf? (parse "a+-(b*-c)"))))
+        (is (not (dnf? (parse "z*a+-(b*-c)"))))
+        (is (not (dnf? (parse "a>b"))))
+        (is (dnf? (parse "(a*-b)+(-c*d*x)")))
+        (is (dnf? (parse "a*b*c")))
+        (is (dnf? (parse "(b*c)*a")))
+        (is (not (dnf? (parse "1"))))
+        (is (not (dnf? (parse "(b*1)*a"))))
+        (is (not (dnf? (parse "(a*-b)+(-c*0)"))))
+        ))
+
+(deftest to-dnf-test
+    (testing "Test 'dnf'"
+        (is (dnf? (to-dnf (parse ""))))
+        (is (dnf? (to-dnf (parse "a"))))
+        (is (dnf? (to-dnf (parse "a+b"))))
+        (is (dnf? (to-dnf (parse "a>b"))))
+        (is (dnf? (to-dnf (parse "a>b>c"))))
+        (is (dnf? (to-dnf (parse "a*b"))))
+        (is (dnf? (to-dnf (parse "(a+b)>(c+d>x)"))))
+        (is (dnf? (to-dnf (parse "(a+b)>(1+d>x)"))))))

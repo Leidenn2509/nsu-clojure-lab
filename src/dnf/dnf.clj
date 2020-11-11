@@ -3,16 +3,6 @@
     (:use dnf.parser)
     (:use dnf.printer))
 
-(defn substitute
-    "Substitute variables to expression"
-    [expr var-map]
-    (cond
-        (variable? expr) (let [key (first (args expr))]
-                             (if (contains? var-map key)
-                                 (constant (get var-map key))
-                                 expr))
-        (constant? expr) expr
-        :else (dnf-of-type expr (map (fn [expr] (substitute expr var-map)) (args expr)))))
 
 (defn apply-rule [expr [pred transformer]]
     (if (pred expr)
@@ -21,9 +11,10 @@
 
 (defn apply-recur [f expr]
     (let [new-expr (f expr)]
-        (if (or (variable? new-expr) (constant? new-expr))
-            new-expr
-            (update-args new-expr (map #(apply-recur f %) (args new-expr))))))
+        (cond
+            (nil? new-expr) nil
+            (or (variable? new-expr) (constant? new-expr)) new-expr
+            :else (update-args new-expr (map #(apply-recur f %) (args new-expr))))))
 
 (defn remove-impl
     "Transform all implication in 'not A or B'"
@@ -62,8 +53,69 @@
                 :else expr))
         expr))
 
-(defn dnf [x]
-    (->> x
+(defn- var-or-nvar? [expr]
+    (or (variable? expr)
+        (and (dnf-not? expr) (variable? (first (args expr))))))
+
+(defn dnf? [expr]
+    (let [expr (decompose expr)]
+        (or (nil? expr)
+            (var-or-nvar? expr)
+            (and (dnf-and? expr)
+                 (every? #(var-or-nvar? %) (args expr)))
+            (and (dnf-or? expr)
+                 (every? #(or (dnf-and? %) (var-or-nvar? %)) (args expr))
+                 (every? true?
+                         (map (fn [arg] (every? #(var-or-nvar? %)
+                                                (args arg)))
+                              (filter #(not (leaf? %)) (args expr))))))))
+
+(defn args-contains-const?
+    [expr const]
+    (some #(and (constant? %)
+                (= const %))
+          (args expr)))
+
+(defn simplify
+    "Simplify conjunction and disjunction if there constant"
+    [expr]
+    (let [expr (decompose expr)]
+        (if (leaf? expr)
+            expr
+            (cond
+                (and (dnf-and? expr)
+                     (args-contains-const? expr C-FALSE)) nil
+                (and (dnf-and? expr)
+                     (args-contains-const? expr C-TRUE)) (apply dnf-and (filter #(not (= % C-TRUE)) (args expr)))
+                (and (dnf-or? expr)
+                     (args-contains-const? expr C-TRUE)) nil
+                (and (dnf-or? expr)
+                     (args-contains-const? expr C-FALSE)) (apply dnf-or (filter #(not (= % C-FALSE)) (args expr)))
+                :else expr)
+            )))
+
+(def transformers
+    [
+     []
+     []
+     []
+
+     ])
+
+(defn to-dnf [expr]
+    (->> expr
          (apply-recur remove-impl)
          (apply-recur op-brackets)
-         (apply-recur distributive-prop)))
+         (apply-recur distributive-prop)
+         (apply-recur simplify)))
+
+(defn substitute
+    "Substitute variables to expression"
+    [expr var-map]
+    (to-dnf (cond
+                (variable? expr) (let [key (first (args expr))]
+                                     (if (contains? var-map key)
+                                         (constant (get var-map key))
+                                         expr))
+                (constant? expr) expr
+                :else (dnf-of-type expr (map (fn [expr] (substitute expr var-map)) (args expr))))))

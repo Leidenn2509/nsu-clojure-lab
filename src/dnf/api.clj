@@ -124,20 +124,21 @@
 
 (defn same-expr?
     [expr1 expr2]
-    (if (not (same-type? expr1 expr2))
-        false
-        (cond
-            (variable? expr1) (same-variables? expr1 expr2)
-            (constant? expr1) (= (constant-value expr1) (constant-value expr2))
-            :else (let [aa (first (args expr1)) ab (last (args expr1))
-                        ba (first (args expr2)) bb (last (args expr2))]
-                      (or
-                          (and
-                              (same-expr? aa ba)
-                              (same-expr? ab bb))
-                          (and
-                              (same-expr? aa bb)
-                              (same-expr? ab ba)))))))
+    (cond
+        (= expr1 expr2) true
+        (same-type? expr1 expr2) (cond
+                                     (variable? expr1) (same-variables? expr1 expr2)
+                                     (constant? expr1) (= (constant-value expr1) (constant-value expr2))
+                                     :else (let [aa (first (args expr1)) ab (last (args expr1))
+                                                 ba (first (args expr2)) bb (last (args expr2))]
+                                               (or
+                                                   (and
+                                                       (same-expr? aa ba)
+                                                       (same-expr? ab bb))
+                                                   (and
+                                                       (same-expr? aa bb)
+                                                       (same-expr? ab ba)))))
+        :else false))
 
 (defn update-args [expr new-args]
     (if (> (count new-args) 1) (cons (first expr) new-args) (list (first expr) (first new-args))))
@@ -161,12 +162,13 @@
 
 (defn- collect-args
     [expr]
-    (if (leaf? expr) (list expr)
-                     (->> (args expr)
-                          (map (fn [arg] (if (same-type? expr arg)
-                                             (collect-args arg)
-                                             (list arg))))
-                          (apply concat))))
+    (if (leaf? expr)
+        (list expr)
+        (->> (args expr)
+             (map (fn [arg] (if (same-type? expr arg)
+                                (collect-args arg)
+                                (list arg))))
+             (apply concat))))
 (defn decompose
     "(a*(b*c)) -> (a*b*c)"
     [expr]
@@ -175,6 +177,8 @@
                  (dnf-or? expr)
                  (dnf-and? expr))
              )
-        (update-args expr (collect-args expr))
+        (update-args expr (map #(decompose %) (collect-args expr)))
         expr))
 
+(def C-TRUE (constant true))
+(def C-FALSE (constant false))
