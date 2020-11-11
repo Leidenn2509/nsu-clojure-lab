@@ -141,17 +141,9 @@
         :else false))
 
 (defn update-args [expr new-args]
-    (if (> (count new-args) 1) (cons (first expr) new-args) (list (first expr) (first new-args))))
-
-(defn- leaf-args [expr]
-    (if (leaf? expr)
-        (list)
-        (filter #(leaf? %) (args expr))))
-
-(defn- not-leaf-args [expr]
-    (if (leaf? expr)
-        (list)
-        (filter #(not (leaf? %)) (args expr))))
+    (if (> (count new-args) 1)
+        (cons (first expr) new-args)
+        (list (first expr) (first new-args))))
 
 (defn compose
     "(a*b*c) -> (a*(b*c))"

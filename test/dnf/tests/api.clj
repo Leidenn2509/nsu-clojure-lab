@@ -57,4 +57,14 @@
         (is (not (same-expr-strict? (variable :x) (variable :y))))
         (is (same-expr-strict?
                 (dnf-or (variable :x) (constant true))
-                (dnf-or (variable :x) (constant true))))))
+                (dnf-or (variable :x) (constant true))))
+        (is (same-expr-strict?
+                (update-args (dnf-and (variable :a) (variable :b)) (list (variable :c) (variable :d)))
+                (dnf-and (variable :c) (variable :d))))
+        (is (same-expr-strict?
+                (decompose (dnf-and (dnf-and (variable :a) (variable :b)) (variable :c)))
+                (dnf-and (variable :a) (variable :b) (variable :c))))
+        (is (same-expr-strict?
+                (compose (dnf-and (variable :a) (variable :b) (variable :c)))
+                (dnf-and (dnf-and (variable :a) (variable :b)) (variable :c))))
+        ))

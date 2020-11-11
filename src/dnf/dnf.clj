@@ -3,13 +3,9 @@
     (:use dnf.parser)
     (:use dnf.printer))
 
-
-(defn apply-rule [expr [pred transformer]]
-    (if (pred expr)
-        (transformer expr)
-        expr))
-
-(defn apply-recur [f expr]
+(defn apply-recur
+    "Apply function `f` to expr and to arguments of result"
+    [f expr]
     (let [new-expr (f expr)]
         (cond
             (nil? new-expr) nil
@@ -53,24 +49,8 @@
                 :else expr))
         expr))
 
-(defn- var-or-nvar? [expr]
-    (or (variable? expr)
-        (and (dnf-not? expr) (variable? (first (args expr))))))
 
-(defn dnf? [expr]
-    (let [expr (decompose expr)]
-        (or (nil? expr)
-            (var-or-nvar? expr)
-            (and (dnf-and? expr)
-                 (every? #(var-or-nvar? %) (args expr)))
-            (and (dnf-or? expr)
-                 (every? #(or (dnf-and? %) (var-or-nvar? %)) (args expr))
-                 (every? true?
-                         (map (fn [arg] (every? #(var-or-nvar? %)
-                                                (args arg)))
-                              (filter #(not (leaf? %)) (args expr))))))))
-
-(defn args-contains-const?
+(defn- args-contains-const?
     [expr const]
     (some #(and (constant? %)
                 (= const %))
@@ -94,13 +74,23 @@
                 :else expr)
             )))
 
-(def transformers
-    [
-     []
-     []
-     []
 
-     ])
+(defn- var-or-nvar? [expr]
+    (or (variable? expr)
+        (and (dnf-not? expr) (variable? (first (args expr))))))
+
+(defn dnf? [expr]
+    (let [expr (decompose expr)]
+        (or (nil? expr)
+            (var-or-nvar? expr)
+            (and (dnf-and? expr)
+                 (every? #(var-or-nvar? %) (args expr)))
+            (and (dnf-or? expr)
+                 (every? #(or (dnf-and? %) (var-or-nvar? %)) (args expr))
+                 (every? true?
+                         (map (fn [arg] (every? #(var-or-nvar? %)
+                                                (args arg)))
+                              (filter #(not (leaf? %)) (args expr))))))))
 
 (defn to-dnf [expr]
     (->> expr
