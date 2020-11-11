@@ -51,10 +51,10 @@
     (testing "Test utils functions"
         (is (same-type? (variable :x) (variable :y)))
         (is (not (same-type? (variable :x) (constant :y))))
-        (is (same-expr? (constant true) (constant true)))
-        (is (not (same-expr? (constant true) (constant false))))
-        (is (same-expr? (variable :x) (variable :x)))
-        (is (not (same-expr? (variable :x) (variable :y))))
-        (is (same-expr?
+        (is (same-expr-strict? (constant true) (constant true)))
+        (is (not (same-expr-strict? (constant true) (constant false))))
+        (is (same-expr-strict? (variable :x) (variable :x)))
+        (is (not (same-expr-strict? (variable :x) (variable :y))))
+        (is (same-expr-strict?
                 (dnf-or (variable :x) (constant true))
                 (dnf-or (variable :x) (constant true))))))

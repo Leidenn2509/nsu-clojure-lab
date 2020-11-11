@@ -23,6 +23,15 @@
 (defn conj-list [coll xs]
     (conj coll (list-or-first xs)))
 
+(declare rpn)
+
+(defn- concat-to-stack [pred tokens res stack]
+    (let [[pop r] (split-in pred stack)]
+        (rpn
+            (rest tokens)
+            (if (empty? pop) res (vec (concat res pop)))
+            (cons (first tokens) r))))
+
 (defn rpn [tokens res stack]
     (let [token (first tokens)]
         (cond
@@ -35,24 +44,11 @@
                                       (rest tokens)
                                       (if (empty? pop) res (vec (concat res pop)))
                                       (rest r)))
-            (= token ::or) (let [[pop r] (split-in #(or (= % ::not) (= % ::and) (= % ::or)) stack)]
-                               (rpn
-                                   (rest tokens)
-                                   (if (empty? pop) res (vec (concat res pop)))
-                                   (cons token r)))         ;;rest?
-            (= token ::and) (let [[pop r] (split-in #(or (= % ::not) (= % ::and)) stack)]
-                                (rpn
-                                    (rest tokens)
-                                    (if (empty? pop) res (vec (concat res pop)))
-                                    (cons token r)))        ;;rest?
-            (= token ::impl) (let [[pop r] (split-in #(or (= % ::not) (= % ::and) (= % ::impl)) stack)]
-                                 (rpn
-                                     (rest tokens)
-                                     (if (empty? pop) res (vec (concat res pop)))
-                                     (cons token r)))       ;;rest?
+            (= token ::or) (concat-to-stack #(or (= % ::not) (= % ::and) (= % ::or)) tokens res stack)
+            (= token ::and) (concat-to-stack #(or (= % ::not) (= % ::and)) tokens res stack)
+            (= token ::impl) (concat-to-stack #(or (= % ::not) (= % ::and) (= % ::impl)) tokens res stack)
             (= (first token) ::symbol) (rpn (rest tokens) (conj res token) stack)
-            :else (if (empty? stack) res (concat res stack))
-            )))
+            :else (if (empty? stack) res (concat res stack)))))
 
 (defn parse
     ([string] (parse (rpn (lexer string) [] `()) `()))
@@ -62,7 +58,7 @@
                          (= token ::true) (parse r (cons (constant true) stack))
                          (= token ::false) (parse r (cons (constant false) stack))
                          (= token ::not) (parse r (cons (dnf-not (first stack)) (rest stack)))
-                         (= token ::or) (parse r (cons (dnf-or (second stack) (first stack)) (drop 2 stack))) ;; apply?
+                         (= token ::or) (parse r (cons (dnf-or (second stack) (first stack)) (drop 2 stack)))
                          (= token ::and) (parse r (cons (dnf-and (second stack) (first stack)) (drop 2 stack)))
                          (= token ::impl) (parse r (cons (dnf-impl (second stack) (first stack)) (drop 2 stack)))
                          (= (first token) ::symbol) (parse r (cons (variable (second token)) stack))

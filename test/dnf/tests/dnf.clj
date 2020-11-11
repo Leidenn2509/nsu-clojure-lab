@@ -7,11 +7,32 @@
 (defn- compare-transform-expr [func string1 string2]
     (same-expr? (func (parse string1)) (parse string2)))
 
+(defn- compare-transform-expr-recur [func string1 string2]
+    (same-expr? (apply-recur func (parse string1)) (parse string2)))
+
 (deftest remove-impl-test
     (testing "Test 'remove-impl'"
-        (is (compare-transform-expr remove-impl "a>b" "-a+b"))
-        (is (compare-transform-expr remove-impl "a>b>c" "-(-a+b)+c")) ;; ????????
-        ))
+        (is (compare-transform-expr-recur remove-impl "a>b" "-a+b"))
+        (is (compare-transform-expr-recur remove-impl "a>b>c" "-(-a+b)+c"))))
+
+(deftest op-brackets-test
+    (testing "Test 'op-brackets'"
+        (is (compare-transform-expr-recur op-brackets "a" "a"))
+        (is (compare-transform-expr-recur op-brackets "-(a+b)" "-a*-b"))
+        (is (compare-transform-expr-recur op-brackets "-((-a+b)*b)" "a*(-b)+(-b)"))
+        (is (compare-transform-expr-recur op-brackets "-(a*(a+-b))" "-a+(-a)*b"))))
+
+(deftest distributive-prop-test
+    (testing "Test 'distributive-prop'"
+        (is (compare-transform-expr-recur distributive-prop "a" "a"))
+        (is (compare-transform-expr-recur distributive-prop "(a)" "(a)"))
+        (is (compare-transform-expr-recur distributive-prop "a+b" "a+b"))
+        (is (compare-transform-expr-recur distributive-prop "a*b" "a*b"))
+        (is (compare-transform-expr-recur distributive-prop "a*b+1" "a*b+1"))
+        (is (compare-transform-expr-recur distributive-prop "a*(b+1)" "a*b+a*1"))
+        (is (compare-transform-expr-recur distributive-prop "a*(b+1)" "(a*b)+(a*1)"))
+        (is (compare-transform-expr-recur distributive-prop "a*(b+1)" "a*b+a*1"))
+        (is (compare-transform-expr-recur distributive-prop "a*(b+(c+d))" "a*c+a*d+a*b"))))
 
 
 (defn- substitute- [variables]
