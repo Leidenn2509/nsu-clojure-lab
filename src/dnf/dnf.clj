@@ -28,6 +28,7 @@
         (let [arg (first (args expr))]
             (cond
                 (dnf-not? arg) (first (args arg))
+                (constant? arg) (if (= arg C-TRUE) C-FALSE C-TRUE)
                 (dnf-and? arg) (apply dnf-or (map (fn [x] (dnf-not x)) (args arg)))
                 (dnf-or? arg) (apply dnf-and (map (fn [x] (dnf-not x)) (args arg)))
                 :else expr))
@@ -64,11 +65,11 @@
             expr
             (cond
                 (and (dnf-and? expr)
-                     (args-contains-const? expr C-FALSE)) nil
+                     (args-contains-const? expr C-FALSE)) C-FALSE
                 (and (dnf-and? expr)
                      (args-contains-const? expr C-TRUE)) (apply dnf-and (filter #(not (= % C-TRUE)) (args expr)))
                 (and (dnf-or? expr)
-                     (args-contains-const? expr C-TRUE)) nil
+                     (args-contains-const? expr C-TRUE)) C-TRUE
                 (and (dnf-or? expr)
                      (args-contains-const? expr C-FALSE)) (apply dnf-or (filter #(not (= % C-FALSE)) (args expr)))
                 :else expr)
@@ -82,6 +83,7 @@
 (defn dnf? [expr]
     (let [expr (decompose expr)]
         (or (nil? expr)
+            (constant? expr)
             (var-or-nvar? expr)
             (and (dnf-and? expr)
                  (every? #(var-or-nvar? %) (args expr)))
@@ -102,10 +104,11 @@
 (defn substitute
     "Substitute variables to expression"
     [expr var-map]
-    (to-dnf (cond
-                (variable? expr) (let [key (first (args expr))]
-                                     (if (contains? var-map key)
-                                         (constant (get var-map key))
-                                         expr))
-                (constant? expr) expr
-                :else (dnf-of-type expr (map (fn [expr] (substitute expr var-map)) (args expr))))))
+    (apply-recur simplify
+                 (cond
+                     (variable? expr) (let [key (first (args expr))]
+                                          (if (contains? var-map key)
+                                              (constant (get var-map key))
+                                              expr))
+                     (constant? expr) expr
+                     :else (dnf-of-type expr (map (fn [expr] (substitute expr var-map)) (args expr))))))
