@@ -5,12 +5,14 @@
 
 (defn substitute
     "Substitute variables to expression"
-    [expr variables]
+    [expr var-map]
     (cond
-        (variable? expr) (let [const (some (fn [[v c]] (if (same-variables? v expr) c false)) variables)]
-                             (if const const expr))
+        (variable? expr) (let [key (first (args expr))]
+                             (if (contains? var-map key)
+                                 (constant (get var-map key))
+                                 expr))
         (constant? expr) expr
-        :else (cons (first expr) (map (fn [expr] (substitute expr variables)) (args expr)))))
+        :else (dnf-of-type expr (map (fn [expr] (substitute expr var-map)) (args expr)))))
 
 (defn apply-rule [expr [pred transformer]]
     (if (pred expr)

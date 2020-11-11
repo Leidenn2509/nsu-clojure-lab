@@ -40,10 +40,8 @@
 
 (deftest substitute-test
     (testing "Test substitution"
-        (is (compare-transform-expr (substitute- [[(variable :x) (constant true)]]) "1" "1"))
-        (is (compare-transform-expr (substitute- [[(variable :x) (constant true)]]) "x" "1"))
-        (is (compare-transform-expr (substitute- [[(variable :x) (constant true)]]) "1+x" "1+1"))
-        (is (compare-transform-expr (substitute- [[(variable :x) (constant true)]]) "y>(1+x)" "y>(1+1)"))
-        (is (compare-transform-expr (substitute- [[(variable :x) (constant true)]
-                                                  [(variable :y) (constant false)]]) "y>(1+x)" "0>(1+1)"))
-        (is (compare-transform-expr (substitute- [[(variable :x) (variable :y)]]) "y>(1+x)" "y>(1+y)"))))
+        (is (compare-transform-expr (substitute- {:x true}) "1" "1"))
+        (is (compare-transform-expr (substitute- {:x true}) "x" "1"))
+        (is (compare-transform-expr (substitute- {:x true}) "1+x" "1+1"))
+        (is (compare-transform-expr (substitute- {:x true}) "y>(1+x)" "y>(1+1)"))
+        (is (compare-transform-expr (substitute- {:x true :y false}) "y>(1+x)" "0>(1+1)"))))
