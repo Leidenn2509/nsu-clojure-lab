@@ -46,7 +46,7 @@
                                       (rest r)))
             (= token ::or) (concat-to-stack #(or (= % ::not) (= % ::and) (= % ::or)) tokens res stack)
             (= token ::and) (concat-to-stack #(or (= % ::not) (= % ::and)) tokens res stack)
-            (= token ::impl) (concat-to-stack #(or (= % ::not) (= % ::and) (= % ::impl)) tokens res stack)
+            (= token ::impl) (concat-to-stack #(or (= % ::not) (= % ::and)) tokens res stack)
             (= (first token) ::symbol) (rpn (rest tokens) (conj res token) stack)
             :else (if (empty? stack) res (concat res stack)))))
 
